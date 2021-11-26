@@ -1,0 +1,33 @@
+{
+  "name": "gandiva",
+  "version": "0.1.0",
+  "description": "google forms spammer.",
+  "main": "build/index.js",
+  "scripts": {
+    "attack": "node ./build/index.js",
+    "build": "tsc"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "axios": "^0.24.0",
+    "chalk": "^4.1.2",
+    "faker": "^5.5.3",
+    "inquirer": "^8.2.0",
+    "request": "^2.88.2",
+    "set-interval-async": "^2.0.3",
+    "strict-uri-encode": "^2.0.0",
+    "tor-request": "^3.1.0",
+    "unique-names-generator": "^4.6.0"
+  },
+  "devDependencies": {
+    "@types/faker": "^5.5.9",
+    "@types/inquirer": "^8.1.3",
+    "@types/request": "^2.48.7",
+    "@types/set-interval-async": "^1.0.0",
+    "@types/strict-uri-encode": "^2.0.0",
+    "ts-node": "^10.4.0",
+    "typescript": "^4.5.2"
+  }
+}
