@@ -4,4 +4,7 @@ export interface IMainProps {
   attackDuration?: number
   spamCount: number
   hidden: boolean
+  indian: boolean
 }
+
+export type TIndianSubcontinentCountry = 'INDIAN' | 'PAKISTANI' | 'BANGLADESHI'

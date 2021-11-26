@@ -13,12 +13,16 @@
   "dependencies": {
     "axios": "^0.24.0",
     "chalk": "^4.1.2",
+    "cheerio": "^1.0.0-rc.10",
     "faker": "^5.5.3",
     "inquirer": "^8.2.0",
+    "random-indian-name": "^1.0.0",
     "request": "^2.88.2",
     "set-interval-async": "^2.0.3",
     "strict-uri-encode": "^2.0.0",
+    "striptags": "^3.2.0",
     "tor-request": "^3.1.0",
+    "txtgen": "^2.2.8",
     "unique-names-generator": "^4.6.0"
   },
   "devDependencies": {

